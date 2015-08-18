@@ -237,10 +237,13 @@ Model.prototype.add = function(data) {
     this.databaseData[this.tableName].rows[autoinc] = data;
     this.databaseData[this.tableName].autoinc += 1;
     this.databaseData[this.tableName].totalrows += 1;
-    reactNativeStore.saveTable(this.tableName, this.databaseData[this.tableName]);
-
-    this.init();
-    return autoinc;
+    return new Promise(function(resolve, reject) {
+        reactNativeStore.saveTable(this.tableName, this.databaseData[this.tableName])
+            .then(function() {
+                this.init();
+                resolve(autoinc);
+            }.bind(this), reject);
+    }.bind(this));
 }
 
 // 取一条数据
@@ -248,13 +251,13 @@ Model.prototype.get = function(id) {
     this.where({
         _id: id
     });
-    
+
     return this.limit(1).find();
 };
 
 // 取多条数据
 Model.prototype.find = function() {
-    
+
     var results = [];
     var rows = this.databaseData[this.tableName]["rows"];
 
